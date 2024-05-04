@@ -30,6 +30,7 @@ const PatientDemographicsForm = ({ handler, idDisabling, submitButton, defaultVa
   const [isPatternError, setIsPatternError] = useState(false);
   const [allInputsFilled, setAllInputsFilled] = useState(false);
 
+
   const handleChange = (event, setter = undefined) => {
     const { name, value } = event.target;
     if (setter != undefined) {
@@ -97,13 +98,23 @@ const PatientDemographicsForm = ({ handler, idDisabling, submitButton, defaultVa
   }, [defaultValues]);
 
   useEffect(() => {
-    const addPatientMedFields = MedicalFields.get(['gender', 'race', 'smoking history', 'height_cm', 'weight_kg']);
-    setFields(addPatientMedFields);
-    const initialValues = addPatientMedFields.reduce((acc, medField) => {
-      acc[medField.name] = undefined;
-      return acc;
-    }, {});
-    setInputValues(initialValues);
+    async function fetchFields() {
+      try {
+        const addPatientMedFields = await MedicalFields.get([], ['vital status', 'age']);
+        console.table(addPatientMedFields);
+        setFields(addPatientMedFields);
+        
+        const initialValues = addPatientMedFields.reduce((acc, medField) => {
+          acc[medField.name] = undefined;
+          return acc;
+        }, {});
+
+        setInputValues(initialValues);
+      } catch (error) {
+        console.error('Failed to fetch medical fields:', error);
+      }
+    }
+    fetchFields();
   }, []);
 
   return (

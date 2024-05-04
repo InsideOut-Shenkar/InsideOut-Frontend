@@ -56,6 +56,7 @@ const AssessmentForm = () => {
   const [openCollapse, setOpenCollapse] = useState(false);
 
   const [dis, setDis] = useState(true);
+  const [risk, setRisk] = useState(undefined);
 
   const handleDemographics = (idNumber, birthDate, inputValues, completed) => {
     console.log(idNumber, birthDate, completed);
@@ -116,6 +117,7 @@ const AssessmentForm = () => {
         console.log(data);
         throw new Error(data.details ? `${data.error}, details: ${data.details}.` : data.error || 'Unknown error occurred');
       }
+      setRisk(data);
       console.log('response:', data);
       setError('');
     } catch (error) {
@@ -239,8 +241,8 @@ const AssessmentForm = () => {
         Assessment Risk
       </Typography>
       <Collapse in={openCollapse}>
-        <Alert variant="filled" severity={error ? 'error' : 'success'} sx={{ color: 'white', my: 3 }} onClose={handleCloseCollapse}>
-          {error ? error : 'succeed.'}
+        <Alert variant="filled" severity={error ? 'error' : risk === 'low' ? 'info' : risk === 'high' ? 'error' : 'warning'} sx={{ color: 'white', my: 3 }} onClose={handleCloseCollapse}>
+          {error ? error : `The risk is ${risk}.`}
         </Alert>
       </Collapse>
       <Box sx={{ width: '100%', height: '100%' }}>

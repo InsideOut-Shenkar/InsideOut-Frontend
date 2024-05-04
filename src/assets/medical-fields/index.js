@@ -8,11 +8,12 @@ class MedicalFieldsFetcher {
       region: process.env.REACT_APP_S3_REGION
     });
 
-    this.data = [];
-    this.#fetchData();
+    this.data = null;
+    this.dataLoaded = false;
+    this.fetchData();
   }
 
-  async #fetchData() {
+  async fetchData() {
     const params = {
       Bucket: process.env.REACT_APP_S3_NAME,
       Key: process.env.REACT_APP_MF_FILE_NAME
@@ -21,13 +22,18 @@ class MedicalFieldsFetcher {
     try {
       const data = await this.s3.getObject(params).promise();
       this.data = JSON.parse(data.Body.toString('utf-8'));
+      this.dataLoaded = true;
     } catch (error) {
       console.error('Error fetching data:', error);
       throw error;
     }
   }
 
-  get(includes = [], excludes = []) {
+  async get(includes = [], excludes = []) {
+    if (!this.dataLoaded) {
+      await this.fetchData(); // Ensure data is loaded
+    }
+
     return this.data
       .map((item, index) => {
         const itemNameLower = item.standard_column_name.toLowerCase();
