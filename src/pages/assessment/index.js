@@ -37,7 +37,6 @@ const parseQuery = (queryString) => {
   return { idNumber, medDataId };
 };
 
-
 // ==============================|| RISK ASSESSMENT FORM PAGE ||============================== //
 
 const AssessmentForm = () => {
@@ -71,18 +70,14 @@ const AssessmentForm = () => {
       ...inputValues
     }));
     setIdNumber(idNumber);
-    if (
-      idNumber.length == 10 &&
-      birthDate &&
-      Object.values(inputValues).every((value) => value !== undefined)
-    ) {
+    if (idNumber.length == 10 && birthDate && Object.values(inputValues).every((value) => value !== undefined)) {
       setDis(false);
     }
   };
 
   const steps = [
     {
-      label: 'Demographics information',
+      label: "Patient's information",
       component: <PatientDemographicsForm handler={handleDemographics} defaultValues={medData} />
     },
     {
@@ -90,7 +85,7 @@ const AssessmentForm = () => {
       component: <></>
     },
     {
-      label: 'Weights setting',
+      label: 'Setting',
       component: <></>
     }
   ];
@@ -241,7 +236,12 @@ const AssessmentForm = () => {
         Assessment Risk
       </Typography>
       <Collapse in={openCollapse}>
-        <Alert variant="filled" severity={error ? 'error' : risk === 'low' ? 'info' : risk === 'high' ? 'error' : 'warning'} sx={{ color: 'white', my: 3 }} onClose={handleCloseCollapse}>
+        <Alert
+          variant="filled"
+          severity={error ? 'error' : risk === 'low' ? 'info' : risk === 'high' ? 'error' : 'warning'}
+          sx={{ color: 'white', my: 3 }}
+          onClose={handleCloseCollapse}
+        >
           {error ? error : `The risk is ${risk}.`}
         </Alert>
       </Collapse>
@@ -297,13 +297,7 @@ const AssessmentForm = () => {
                   ))}
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  sx={{ my: 1 }}
-                  onClick={handleSubmit}
-                  disabled={dis}
-                >
+                <Button variant="contained" color="primary" sx={{ my: 1 }} onClick={handleSubmit} disabled={dis}>
                   Get Assessment
                 </Button>
               </Box>

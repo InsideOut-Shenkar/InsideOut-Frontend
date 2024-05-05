@@ -30,7 +30,6 @@ const PatientDemographicsForm = ({ handler, idDisabling, submitButton, defaultVa
   const [isPatternError, setIsPatternError] = useState(false);
   const [allInputsFilled, setAllInputsFilled] = useState(false);
 
-
   const handleChange = (event, setter = undefined) => {
     const { name, value } = event.target;
     if (setter != undefined) {
@@ -103,7 +102,7 @@ const PatientDemographicsForm = ({ handler, idDisabling, submitButton, defaultVa
         const addPatientMedFields = await MedicalFields.get([], ['vital status', 'age']);
         console.table(addPatientMedFields);
         setFields(addPatientMedFields);
-        
+
         const initialValues = addPatientMedFields.reduce((acc, medField) => {
           acc[medField.name] = undefined;
           return acc;
