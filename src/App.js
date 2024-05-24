@@ -1,6 +1,7 @@
 // project import
 import Routes from 'routes';
 import ThemeCustomization from 'themes';
+import AuthGuard from 'components/AuthGuard';
 import ScrollTop from 'components/ScrollTop';
 
 // ==============================|| APP - THEME, ROUTER, LOCAL  ||============================== //
@@ -8,7 +9,9 @@ import ScrollTop from 'components/ScrollTop';
 const App = () => (
   <ThemeCustomization>
     <ScrollTop>
-      <Routes />
+      <AuthGuard>
+        <Routes />
+      </AuthGuard>
     </ScrollTop>
   </ThemeCustomization>
 );
