@@ -29,23 +29,13 @@ class MedicalFieldsFetcher {
     }
   }
 
-  async get(includes = [], excludes = []) {
+  async get(includes = []) {
     if (!this.dataLoaded) {
-      await this.fetchData(); // Ensure data is loaded
+      await this.fetchData();
     }
 
     return this.data
       .map((item, index) => {
-        const itemNameLower = item.standard_column_name.toLowerCase();
-
-        if (excludes.includes(itemNameLower)) {
-          return null;
-        }
-
-        if (includes.length > 0 && !includes.includes(itemNameLower)) {
-          return null;
-        }
-
         const result = {
           id: index,
           type: item.datatype,
@@ -58,7 +48,15 @@ class MedicalFieldsFetcher {
           result.range = item.standard_input_values?.range;
         }
 
-        return result;
+        // Check if the item matches all includes criteria
+        const matches = includes.every((include) => {
+          const [key, value] = Object.entries(include)[0];
+          // console.log(include); // Debug: Log the include object
+          // console.log(key, value); // Debug: Log the key and value
+          return item[key] && item[key] === value;
+        });
+
+        return matches ? result : null;
       })
       .filter((item) => item !== null);
   }
