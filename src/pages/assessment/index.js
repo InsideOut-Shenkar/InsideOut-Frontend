@@ -233,7 +233,7 @@ const AssessmentForm = () => {
             );
           })}
         </Stepper>
-        <Box sx={{ flex: 0.9, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flex: 0.9, display: 'flex', flexDirection: 'column'  }}>
           {allStepsCompleted() ? (
             <>
               <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you&apos;re finished</Typography>
@@ -243,7 +243,7 @@ const AssessmentForm = () => {
               </Box>
             </>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between',  height: '100%' }}>
               <MainCard sx={{ my: 3 }}>{steps[activeStep].component}</MainCard>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button color="inherit" disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
