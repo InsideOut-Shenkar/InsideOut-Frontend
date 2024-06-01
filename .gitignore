@@ -112,3 +112,6 @@ build
 
 # node modules
 ./node_modules
+
+# visual studio code
+.vscode
