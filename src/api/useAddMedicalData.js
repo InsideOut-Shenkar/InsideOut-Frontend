@@ -20,8 +20,8 @@ const useAddMedicalData = () => {
       }
       return data;
     } catch (err) {
-      console.error('Failed to add patient:', err);
-      throw new Error(`Failed to add patient, details: ${err.message}`);
+      console.error('Failed to add medical data:', err);
+      throw new Error(`Failed to add medical data, details: ${err.message}`);
     }
   };
 
