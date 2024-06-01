@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Cookies from 'js-cookie';
+
+// project import
+import userPool from 'utils/aws/cognito/userPool';
 
 // ==============================|| AUTH GUARD ||============================== //
+
 const AuthGuard = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -10,10 +13,19 @@ const AuthGuard = ({ children }) => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = Cookies.get('jwt');
-      if (!token) {
-        // Redirect to login page if the token is not found or expired
-        navigate('/login');
+      const cognitoUser = userPool.getCurrentUser();
+      console.log('CurrentUser', cognitoUser);
+
+      if (cognitoUser) {
+        cognitoUser.getSession((err, session) => {
+          if (err || !session.isValid()) {
+            navigate('/login', { state: { from: pathname } });
+          } else if (pathname === '/login') {
+            navigate('/', { state: { from: pathname } });
+          }
+        });
+      } else {
+        navigate('/login', { state: { from: pathname } });
       }
     };
 
