@@ -1,25 +1,36 @@
+import { useState } from 'react';
 // material-ui
-import { Grid, Stack, Typography } from '@mui/material';
+import { Grid, Snackbar, Alert } from '@mui/material';
 
 // project import
-import AuthRegister from './auth-forms/AuthRegister';
 import AuthWrapper from './AuthWrapper';
+import AuthRegister from './auth-forms/AuthRegister';
+import RegisterHeader from 'layout/MainLayout/Header/RegisterHeader';
 
-// ================================|| Register ||================================ //
+// ================================|| REGISTER PAGE ||================================ //
 
-const Register = () => (
-  <AuthWrapper>
-    <Grid container spacing={3}>
-      <Grid item xs={12}>
-        <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: { xs: -0.5, sm: 0.5 } }}>
-          <Typography variant="h3">Register new user</Typography>
-        </Stack>
+const Register = () => {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
+  return (
+    <AuthWrapper>
+      <Grid container spacing={2}>
+        <RegisterHeader />
+        <Grid item xs={12}>
+          <AuthRegister setSnackbarOpen={setSnackbarOpen} />
+        </Grid>
       </Grid>
-      <Grid item xs={12}>
-        <AuthRegister />
-      </Grid>
-    </Grid>
-  </AuthWrapper>
-);
+      <Snackbar open={snackbarOpen} onClose={handleSnackbarClose} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Alert onClose={handleSnackbarClose} severity="success">
+          User created successfully
+        </Alert>
+      </Snackbar>
+    </AuthWrapper>
+  );
+};
 
 export default Register;
