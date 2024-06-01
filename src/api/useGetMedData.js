@@ -1,4 +1,4 @@
-// ==============================|| GET PATIENTS HOOK ||============================== //
+// ==============================|| GET MEDICAL DATA HOOK ||============================== //
 
 const useGetMedData = () => {
   const getMedData = async (id) => {
@@ -11,7 +11,7 @@ const useGetMedData = () => {
       }
       return updatedJson;
     } catch (err) {
-      console.error('Failed to fetch patient data:', err);
+      console.error('Failed to fetch medical data:', err);
       throw new Error(`Data fetching failed, details: ${err.message}`);
     }
   };
