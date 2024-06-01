@@ -24,7 +24,7 @@ const Logo = () => {
      */
 
     <>
-      <Typography variant="h2">InsideOut logo</Typography>
+      <Typography variant="h2">InsideOut</Typography>
     </>
   );
 };
