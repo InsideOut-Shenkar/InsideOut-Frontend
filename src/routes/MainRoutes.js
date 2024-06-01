@@ -1,6 +1,7 @@
 import { lazy } from 'react';
 
 // project import
+import { UserRoute } from './RoleRoutes';
 import Loadable from 'components/Loadable';
 import MainLayout from 'layout/MainLayout';
 
@@ -9,7 +10,7 @@ const DashboardDefault = Loadable(lazy(() => import('pages/dashboard')));
 const ReportDashboard = Loadable(lazy(() => import('pages/reportDashboard')));
 
 // render - patient
-const NewPatient = Loadable(lazy(() => import('pages/patient/PatientRegistrationForm')));
+const PatientRegistration = Loadable(lazy(() => import('pages/patient/PatientRegistration')));
 const PatientsList = Loadable(lazy(() => import('pages/patient/PatientsList')));
 
 // render - assessment
@@ -23,32 +24,56 @@ const MainRoutes = {
   children: [
     {
       path: '/',
-      element: <DashboardDefault />
+      element: (
+        <UserRoute>
+          <DashboardDefault />
+        </UserRoute>
+      )
     },
     {
       path: 'dashboard',
       children: [
         {
           path: 'default',
-          element: <DashboardDefault />
+          element: (
+            <UserRoute>
+              <DashboardDefault />
+            </UserRoute>
+          )
         },
         {
           path: 'reports',
-          element: <ReportDashboard />
+          element: (
+            <UserRoute>
+              <ReportDashboard />
+            </UserRoute>
+          )
         }
       ]
     },
     {
       path: 'add-patient',
-      element: <NewPatient />
+      element: (
+        <UserRoute>
+          <PatientRegistration />
+        </UserRoute>
+      )
     },
     {
       path: 'patients',
-      element: <PatientsList />
+      element: (
+        <UserRoute>
+          <PatientsList />
+        </UserRoute>
+      )
     },
     {
       path: 'risk-assessment',
-      element: <AssessmentForm />
+      element: (
+        <UserRoute>
+          <AssessmentForm />
+        </UserRoute>
+      )
     }
   ]
 };

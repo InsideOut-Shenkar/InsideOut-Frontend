@@ -1,4 +1,4 @@
-import React from 'react';
+import { useState } from 'react';
 
 // material-ui
 import {
@@ -19,21 +19,85 @@ import * as Yup from 'yup';
 import { Formik } from 'formik';
 
 // project import
+import AWS from 'utils/aws/config';
+import useAddUser from 'api/useAddUser';
+import userPoolData from 'utils/aws/cognito/userPoolData';
 import AnimateButton from 'components/@extended/AnimateButton';
 
 // assets
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 
+const cognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider();
+
+const capitalizeFullName = (fullName) => {
+  // Split the full name into an array of words
+  const words = fullName.split(' ');
+
+  // Map over each word to capitalize the first letter and make the rest lowercase
+  const capitalizedWords = words.map((word) => {
+    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+  });
+
+  // Join the array of words back into a single string
+  const capitalizedFullName = capitalizedWords.join(' ');
+
+  return capitalizedFullName;
+};
+
 // ============================|| FIREBASE - REGISTER ||============================ //
 
-const AuthRegister = () => {
-  const [showPassword, setShowPassword] = React.useState(false);
+const AuthRegister = ({ setSnackbarOpen }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const addUser = useAddUser();
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
 
   const handleMouseDownPassword = (event) => {
     event.preventDefault();
+  };
+
+  const handleSubmit = async (values, { setErrors, setStatus, setSubmitting }) => {
+    try {
+      const { email, password, fullName, role } = values;
+
+      const responseData = await addUser(email, fullName, role);
+      const userID = responseData.id?.toString();
+
+      // Create user
+      const params = {
+        UserPoolId: userPoolData.UserPoolId,
+        Username: email,
+        TemporaryPassword: password,
+        UserAttributes: [
+          { Name: 'email', Value: email },
+          { Name: 'name', Value: capitalizeFullName(fullName) },
+          { Name: 'custom:user_rds_id', Value: userID }
+        ]
+      };
+
+      await cognitoIdentityServiceProvider.adminCreateUser(params).promise();
+
+      // Add user to 'insideout-doctors' group if role is 'doctor'
+      if (role === 'doctor') {
+        const groupParams = {
+          GroupName: 'insideout-doctors',
+          UserPoolId: userPoolData.UserPoolId,
+          Username: email
+        };
+
+        await cognitoIdentityServiceProvider.adminAddUserToGroup(groupParams).promise();
+      }
+
+      setStatus({ success: true });
+      setSubmitting(false);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error(error);
+      setErrors({ submit: error.message });
+      setStatus({ success: false });
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -43,30 +107,26 @@ const AuthRegister = () => {
           email: '',
           password: '',
           fullName: '',
-          rule: '',
+          role: '',
           submit: null
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
           password: Yup.string().max(255).required('Password is required'),
           fullName: Yup.string().max(255).required('Full name is required'),
-          rule: Yup.string().required('Rule is required')
+          role: Yup.string().required('Role is required')
         })}
-        onSubmit={async (values, { setErrors, setStatus, setSubmitting }) => {
-          try {
-            console.table(values);
-            setStatus({ success: false });
-            setSubmitting(false);
-          } catch (err) {
-            setStatus({ success: false });
-            setErrors({ submit: err.message });
-            setSubmitting(false);
-          }
-        }}
+        onSubmit={handleSubmit}
       >
         {({ errors, handleBlur, handleChange, handleSubmit, isSubmitting, touched, values }) => (
-          <form noValidate onSubmit={handleSubmit}>
-            <Grid container spacing={3}>
+          <form
+            noValidate
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleSubmit();
+            }}
+          >
+            <Grid container spacing={2.5}>
               <Grid item xs={12}>
                 <Stack spacing={1}>
                   <InputLabel htmlFor="email">Email Address</InputLabel>
@@ -113,32 +173,32 @@ const AuthRegister = () => {
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="rule">Rule</InputLabel>
+                  <InputLabel htmlFor="role">Role</InputLabel>
                   <Select
-                    id="rule"
-                    name="rule"
-                    value={values.rule}
+                    id="role"
+                    name="role"
+                    value={values.role}
                     onChange={handleChange}
                     onBlur={handleBlur}
                     displayEmpty
                     fullWidth
-                    error={Boolean(touched.rule && errors.rule)}
+                    error={Boolean(touched.role && errors.role)}
                   >
                     <MenuItem value="" disabled>
-                      Select rule
+                      Select role
                     </MenuItem>
-                    <MenuItem value="Doctor">Doctor</MenuItem>
+                    <MenuItem value="doctor">Doctor</MenuItem>
                   </Select>
-                  {touched.rule && errors.rule && (
-                    <FormHelperText error id="standard-weight-helper-text-rule">
-                      {errors.rule}
+                  {touched.role && errors.role && (
+                    <FormHelperText error id="standard-weight-helper-text-role">
+                      {errors.role}
                     </FormHelperText>
                   )}
                 </Stack>
               </Grid>
               <Grid item xs={12}>
                 <Stack spacing={1}>
-                  <InputLabel htmlFor="password">Password</InputLabel>
+                  <InputLabel htmlFor="password">Temporary Password</InputLabel>
                   <OutlinedInput
                     fullWidth
                     error={Boolean(touched.password && errors.password)}

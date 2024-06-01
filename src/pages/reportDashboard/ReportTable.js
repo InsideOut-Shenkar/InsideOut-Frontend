@@ -17,18 +17,18 @@ const rows = [
   createData('R001', 'Dr. Smith', 'P1001', '2024-03-01', '0'),
   createData('R002', 'Dr. Johnson', 'P1002', '2024-03-02', '2'),
   createData('R003', 'Dr. Williams', 'P1003', '2024-03-03', '1'),
-  createData('R004', 'Dr. Brown', 'P1004', '2024-03-04', '3'),
-  createData('R005', 'Dr. Jones', 'P1005', '2024-03-05', '3'),
+  createData('R004', 'Dr. Brown', 'P1004', '2024-03-04', '2'),
+  createData('R005', 'Dr. Jones', 'P1005', '2024-03-05', '0'),
   createData('R006', 'Dr. Garcia', 'P1006', '2024-03-06', '1'),
-  createData('R007', 'Dr. Miller', 'P1007', '2024-03-07', '3'),
-  createData('R008', 'Dr. Davis', 'P1008', '2024-03-08', '2'),
-  createData('R009', 'Dr. Martinez', 'P1009', '2024-03-09', '2'),
+  createData('R007', 'Dr. Miller', 'P1007', '2024-03-07', '2'),
+  createData('R008', 'Dr. Davis', 'P1008', '2024-03-08', '1'),
+  createData('R009', 'Dr. Martinez', 'P1009', '2024-03-09', '0'),
   createData('R010', 'Dr. Hernandez', 'P1010', '2024-03-10', '2'),
   createData('R011', 'Dr. Lopez', 'P1011', '2024-03-11', '0'),
   createData('R012', 'Dr. Wilson', 'P1012', '2024-03-12', '2'),
   createData('R013', 'Dr. Anderson', 'P1013', '2024-03-13', '0'),
   createData('R014', 'Dr. Thomas', 'P1014', '2024-03-14', '1'),
-  createData('R015', 'Dr. Taylor', 'P1015', '2024-03-15', '3')
+  createData('R015', 'Dr. Taylor', 'P1015', '2024-03-15', '2')
 ];
 
 // ==============================|| REPORTS TABLE - HEADER CELL ||============================== //
@@ -106,14 +106,10 @@ const ReportStatus = ({ status }) => {
       title = 'Medium';
       break;
     case 1:
-      color = 'success';
-      title = 'None';
-      break;
-    case 2:
       color = 'error';
       title = 'High';
       break;
-    case 3:
+    case 2:
       color = 'primary';
       title = 'Low';
   }

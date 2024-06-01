@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-// import { useNavigate } from 'react-router-dom';
 
 // material-ui
 import { Box, Step, Alert, Button, Stepper, Backdrop, Collapse, StepButton, Typography, CircularProgress } from '@mui/material';
@@ -7,42 +6,28 @@ import ErrorIcon from '@mui/icons-material/Error';
 
 // project import
 import MainCard from 'components/MainCard';
-// import MedicalFields from 'assets/medical-fields';
-import PatientDemographicsForm from 'components/PatientDemographicsForm';
+import { DynamicInputs } from 'components/forms';
+import { useGetPatient, useGetMedData } from 'api';
+import { PatientsInformation, MedicalInformation, Setting } from 'components/forms';
 
-const getPatient = async (id) => {
-  const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/patients/${id}`);
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.details ? `${data.details}, details: ${data.details}` : data.error || 'Unknown error occurred');
-  }
-  return data;
-};
+const firstStepComponent = (
+  <PatientsInformation>
+    <DynamicInputs inputs_type={[{ information_type: 'personal' }]} />
+  </PatientsInformation>
+);
 
-const getMedData = async (id) => {
-  console.log('getMedData', id);
-  const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/medical_data/${id}`);
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.details ? `${data.details}, details: ${data.details}` : data.error || 'Unknown error occurred');
-  }
-  return data;
-};
+const secondStepComponent = (
+  <MedicalInformation>
+    <DynamicInputs inputs_type={[{ information_type: 'medical' }]} />
+  </MedicalInformation>
+);
 
-const parseQuery = (queryString) => {
-  const query = new URLSearchParams(queryString);
-  const idNumber = query.get('idNumber');
-  const medDataId = query.get('medDataId');
-
-  return { idNumber, medDataId };
-};
+const thirdStepComponent = <Setting />;
 
 // ==============================|| RISK ASSESSMENT FORM PAGE ||============================== //
 
 const AssessmentForm = () => {
-  // const navigate = useNavigate();
   const [error, setError] = useState('');
-  // const [fields, setFields] = useState([]);
   const [medData, setMedData] = useState({});
   const [medInput, setMedInput] = useState({});
   const [idNumber, setIdNumber] = useState('');
@@ -50,43 +35,24 @@ const AssessmentForm = () => {
   const [medDataID, setMedDataID] = useState('');
   const [completed, setCompleted] = useState({});
   const [activeStep, setActiveStep] = useState(0);
-  // const [idDisabling, setIdDisabling] = useState(true);
   const [openBackdrop, setOpenBackdrop] = useState(false);
   const [openCollapse, setOpenCollapse] = useState(false);
-
-  const [dis, setDis] = useState(true);
-  const [risk, setRisk] = useState(undefined);
-
-  const handleDemographics = (idNumber, birthDate, inputValues, completed) => {
-    console.log(idNumber, birthDate, completed);
-    console.table(inputValues);
-    // const pattern = /^\d{10}$/;
-    // if (pattern.test(idNumber)) {
-    //   setIdDisabling(false);
-    // }
-    setMedInput((prevValues) => ({
-      ...prevValues,
-      date_of_birth: birthDate,
-      ...inputValues
-    }));
-    setIdNumber(idNumber);
-    if (idNumber.length == 10 && birthDate && Object.values(inputValues).every((value) => value !== undefined)) {
-      setDis(false);
-    }
-  };
+  const [risk, setRisk] = useState(null);
+  const { getPatient } = useGetPatient();
+  const { getMedData } = useGetMedData();
 
   const steps = [
     {
       label: "Patient's information",
-      component: <PatientDemographicsForm handler={handleDemographics} defaultValues={medData} />
+      component: firstStepComponent
     },
     {
-      label: 'Medical data',
-      component: <></>
+      label: 'Medical information',
+      component: secondStepComponent
     },
     {
       label: 'Setting',
-      component: <></>
+      component: thirdStepComponent
     }
   ];
 
@@ -125,6 +91,14 @@ const AssessmentForm = () => {
       }, 2000);
     }
   };
+
+  const myFalse = false;
+
+  if (myFalse) {
+    console.log(medData);
+    setMedInput([]);
+    handleSubmit();
+  }
 
   const handleCloseCollapse = () => {
     setOpenCollapse(false);
@@ -189,12 +163,6 @@ const AssessmentForm = () => {
 
   useEffect(() => {
     async function fetchData() {
-      // const medFieldsList = MedicalFields.get([], ['vital status']);
-      // console.table(medFieldsList);
-      // setFields(medFieldsList);
-
-      const { idNumber, medDataId } = parseQuery(location.search);
-
       try {
         if (idNumber) {
           console.log('idNumber', idNumber);
@@ -223,15 +191,13 @@ const AssessmentForm = () => {
       } catch (error) {
         console.error('Failed to fetch:', error);
       }
-
-      // navigate(window.location.pathname, { replace: true });
     }
 
     fetchData();
   }, []);
 
   return (
-    <Box>
+    <Box sx={{ height: '83vh', display: 'flex', flexDirection: 'column' }}>
       <Typography variant="h3" gutterBottom>
         Assessment Risk
       </Typography>
@@ -245,8 +211,8 @@ const AssessmentForm = () => {
           {error ? error : `The risk is ${risk}.`}
         </Alert>
       </Collapse>
-      <Box sx={{ width: '100%', height: '100%' }}>
-        <Stepper nonLinear activeStep={activeStep}>
+      <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+        <Stepper nonLinear activeStep={activeStep} sx={{ flex: 0.1 }}>
           {steps.map((step, index) => {
             const labelProps = {};
             if (isStepFailed(index)) {
@@ -267,7 +233,7 @@ const AssessmentForm = () => {
             );
           })}
         </Stepper>
-        <>
+        <Box sx={{ flex: 0.9, display: 'flex', flexDirection: 'column' }}>
           {allStepsCompleted() ? (
             <>
               <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you&apos;re finished</Typography>
@@ -277,7 +243,7 @@ const AssessmentForm = () => {
               </Box>
             </>
           ) : (
-            <>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <MainCard sx={{ my: 3 }}>{steps[activeStep].component}</MainCard>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button color="inherit" disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
@@ -296,14 +262,9 @@ const AssessmentForm = () => {
                     <Button onClick={handleComplete}>{completedSteps() === totalSteps() - 1 ? 'Finish' : 'Complete Step'}</Button>
                   ))}
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
-                <Button variant="contained" color="primary" sx={{ my: 1 }} onClick={handleSubmit} disabled={dis}>
-                  Get Assessment
-                </Button>
-              </Box>
-            </>
+            </Box>
           )}
-        </>
+        </Box>
       </Box>
       <Backdrop sx={{ color: '#fff', zIndex: 2000 }} open={openBackdrop}>
         <CircularProgress color="inherit" />

@@ -37,7 +37,7 @@ const FieldSelector = ({ field, handleChange, idDisabling, defaultValue, index }
         setValue(value);
       }}
       value={value}
-      renderInput={(params) => <TextField {...params} label={field.name} />}
+      renderInput={(params) => <TextField {...params} name={field.name} label={field.name} required />}
       isOptionEqualToValue={(option, value) => option.id === value.id}
       disabled={idDisabling}
     />

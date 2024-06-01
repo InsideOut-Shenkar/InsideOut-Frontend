@@ -1,70 +1,57 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // material-ui
 import { Typography, Box, Collapse, Alert, Backdrop, CircularProgress } from '@mui/material';
 
 // project import
 import MainCard from 'components/MainCard';
-import PatientsTable from './patientsTable';
-
-const calculateAge = (dob) => {
-  const birthday = new Date(dob);
-  const now = new Date();
-  let ageInYears = now.getFullYear() - birthday.getFullYear();
-  let ageInMonths = now.getMonth() - birthday.getMonth();
-
-  if (ageInMonths < 0 || (ageInMonths === 0 && now.getDate() < birthday.getDate())) {
-    ageInYears--;
-    ageInMonths = 12 + ageInMonths;
-  }
-
-  if (ageInMonths === 0 && now.getDate() >= birthday.getDate()) {
-    ageInMonths = 11;
-  }
-
-  return `${ageInYears}Y ${ageInMonths}M`;
-};
+import DataTable from 'components/DataTable';
+import { useGetPatients, useDeletePatients } from 'api';
 
 // ==============================|| PATIENT LIST PAGE ||============================== //
 
 const PatientsList = () => {
+  const [rows, setRows] = useState([]);
+  const { fetchData } = useGetPatients();
+  const [error, setError] = useState(null);
+  const { deletePatients } = useDeletePatients();
   const [openCollapse, setOpenCollapse] = useState(false);
   const [openBackdrop, setOpenBackdrop] = useState(false);
-  const [rows, setRows] = useState([]);
-  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchDataAsync = async () => {
+      try {
+        setError(null);
+        const data = await fetchData();
+        setRows(data);
+      } catch (err) {
+        setError(err.message);
+        setOpenCollapse(true);
+      }
+    };
+
+    fetchDataAsync();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   const handleCloseCollapse = () => {
     setOpenCollapse(false);
   };
 
   const handleDelete = async (rowSelectionModel) => {
-    const selectedRowsData = rowSelectionModel.map((rowId) => rows.find((row) => row.id === rowId));
-    const selectedIds = selectedRowsData.map((row) => row.idNumber);
+    const selectedRowsData = rows.filter((row) => rowSelectionModel.includes(row.id));
+    const selectedIds = selectedRowsData.map(({ idNumber }) => idNumber);
     console.log('Deleting rows with ID numbers:', selectedIds);
     try {
+      setError(null);
       setOpenBackdrop(true);
-
-      const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/patients`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(selectedIds)
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.details ? `${data.error}, details: ${data.details}` : data.error || 'Unknown error occurred');
-      }
-      console.log('Delete response:', responseData);
-      setError('');
+      await deletePatients(selectedIds);
       setTimeout(() => {
         setRows((currentRows) => currentRows.filter((row) => !selectedIds.includes(row.idNumber)));
       }, 1000);
-    } catch (error) {
-      console.error('Error:', error);
-      setError(`Error occurred during deletion, details: ${error.message}`);
+    } catch (err) {
+      console.error('Error:', err);
+      setError(`Error occurred during deletion, details: ${err.message}`);
     } finally {
       setTimeout(() => {
         setOpenBackdrop(false);
@@ -72,33 +59,6 @@ const PatientsList = () => {
       }, 1000);
     }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/view/patients`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.details ? `${data.details}, details: ${data.details}` : data.error || 'Unknown error occurred');
-        }
-
-        const updatedRows = data.map((row, index) => ({
-          id: index,
-          idNumber: row['id_number'],
-          age: calculateAge(row['date_of_birth']),
-          assessmentNo: row['report_count'],
-          addedBy: row['full_name']
-        }));
-        setRows(updatedRows);
-      } catch (error) {
-        console.error('Failed to fetch patients data:', error);
-        setError(` data fetching, details: ${error.message}`);
-        setOpenCollapse(true);
-      }
-    };
-    fetchData();
-  }, []);
 
   return (
     <Box>
@@ -109,7 +69,7 @@ const PatientsList = () => {
         </Alert>
       </Collapse>
       <MainCard content={false} sx={{ mt: 1.5 }}>
-        <PatientsTable data={rows} handleDelete={handleDelete} />
+        <DataTable data={rows} handleDelete={handleDelete} />
       </MainCard>
       <Backdrop sx={{ color: '#fff', zIndex: 2000 }} open={openBackdrop}>
         <CircularProgress color="inherit" />
