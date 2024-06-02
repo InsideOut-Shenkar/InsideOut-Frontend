@@ -13,8 +13,7 @@ import {
   DialogActions,
   Button,
   FormControl,
-  FormLabel,
-  Rating
+  FormLabel
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
@@ -74,15 +73,6 @@ const WeightSlider = styled(Slider)({
 
 const percentage = 100;
 
-const StyledRating = styled(Rating)({
-  '& .MuiRating-iconFilled': {
-    color: '#ff6d75',
-  },
-  '& .MuiRating-iconHover': {
-    color: '#ff3d47',
-  },
-});
-
 // ==============================|| SETTING FORM ||============================== //
 
 const Setting = ({ handler }) => {
@@ -126,22 +116,6 @@ const Setting = ({ handler }) => {
         }}
       >
         <Grid container spacing={3}>
-          <Grid item xs={12} container justifyContent="center">
-            <Grid sm={6}>
-              <FormControl component="fieldset" fullWidth>
-                <FormLabel component="legend">Dataset 1 Weight</FormLabel>
-                <WeightSlider value={slider1Value} onChange={handleSlider1Change} valueLabelDisplay="auto" aria-label="slider-1" />
-              </FormControl>
-            </Grid>
-          </Grid>
-          <Grid item xs={12} container justifyContent="center">
-            <Grid sm={6}>
-              <FormControl component="fieldset" fullWidth>
-                <FormLabel component="legend">Dataset 2 Weight</FormLabel>
-                <WeightSlider value={slider2Value} onChange={handleSlider2Change} valueLabelDisplay="auto" aria-label="slider-2" />
-              </FormControl>
-            </Grid>
-          </Grid>
           <Grid item xs={12} container justifyContent="center">
             <Grid sm={6}>
               <FormControl component="fieldset" fullWidth>
