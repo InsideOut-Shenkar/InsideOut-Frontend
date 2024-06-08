@@ -16,6 +16,9 @@ const PatientsList = Loadable(lazy(() => import('pages/patient/PatientsList')));
 // render - assessment
 const AssessmentForm = Loadable(lazy(() => import('pages/assessment')));
 
+// render - report
+const Report = Loadable(lazy(() => import('pages/report')));
+
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
@@ -72,6 +75,14 @@ const MainRoutes = {
       element: (
         <UserRoute>
           <AssessmentForm />
+        </UserRoute>
+      )
+    },
+    {
+      path: 'report',
+      element: (
+        <UserRoute>
+          <Report />
         </UserRoute>
       )
     }
