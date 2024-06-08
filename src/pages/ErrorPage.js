@@ -14,32 +14,22 @@ const ErrorPage = () => {
 
   useEffect(() => {
     dispatch(activeItem({ openItem: [] }));
-  }, []);
+  }, [dispatch]);
 
   return (
     <MainCard>
-      <Grid 
-        container 
-        spacing={2} 
-        direction="column" 
-        justifyContent="center" 
-        style={{ textAlign: 'center', padding: '16px' }}
-      >
+      <Grid container spacing={2} direction="column" justifyContent="center" style={{ textAlign: 'center', padding: '16px' }}>
         <Grid item sx={{ width: '100%' }} container justifyContent="center">
           <Empty width="38%" />
         </Grid>
         <Grid item>
-          <Typography variant="h4">
-            404 - Page Not Found
-          </Typography>
+          <Typography variant="h4">404 - Page Not Found</Typography>
         </Grid>
         <Grid item>
-          <Typography variant="body1">
-            The page you are looking for does not exist.
-          </Typography>
+          <Typography variant="body1">The page you are looking for does not exist.</Typography>
         </Grid>
       </Grid>
     </MainCard>
-);
-}
+  );
+};
 export default ErrorPage;
