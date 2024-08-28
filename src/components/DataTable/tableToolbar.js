@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { IconButton, Box, Menu, MenuItem, Typography, ListItemIcon } from '@mui/material';
+import ReplayIcon from '@mui/icons-material/Replay';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 const ITEM_HEIGHT = 48;
 
-const TableToolbar = ({ selectedRowCount, onDeleteSelected }) => {
+const TableToolbar = ({ selectedRowCount, onDeleteSelected, reloadHandler, loading }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
@@ -16,7 +17,10 @@ const TableToolbar = ({ selectedRowCount, onDeleteSelected }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', padding: 1 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 1 }}>
+      <IconButton onClick={reloadHandler} disabled={loading}>
+        <ReplayIcon />
+      </IconButton>
       <IconButton
         aria-label="more"
         id="long-button"

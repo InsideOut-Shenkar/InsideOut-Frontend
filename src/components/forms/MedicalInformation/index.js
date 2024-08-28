@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 // material-ui
 import { Box, Grid } from '@mui/material';
 
@@ -14,11 +15,12 @@ const commonInputStyle = {
 
 // ==============================|| MEDICAL INFORMATION FORM ||============================== //
 
-const MedicalInformation = ({ handler, children }) => (
+const MedicalInformation = forwardRef(({ handler, children }, ref) => (
   <Box
     component="form"
     autoComplete="off"
     onSubmit={handler}
+    ref={ref}
     sx={{
       '& .MuiTextField-root': { m: 1, ...commonInputStyle }
     }}
@@ -27,6 +29,6 @@ const MedicalInformation = ({ handler, children }) => (
       {children}
     </Grid>
   </Box>
-);
+));
 
 export default MedicalInformation;

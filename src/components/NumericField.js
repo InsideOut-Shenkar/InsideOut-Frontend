@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // material-ui
 import TextField from '@mui/material/TextField';
 
 // ==============================|| NUMERIC FIELD ||============================== //
 
-const NumericField = ({ field, index, handleChange, idDisabling, defaultValue }) => {
-  const [value, setValue] = useState(undefined);
+const NumericField = ({ field, index, idDisabling, defaultValue }) => {
+  const [value, setValue] = useState('');
 
   useEffect(() => {
     if (defaultValue) {
@@ -30,10 +30,7 @@ const NumericField = ({ field, index, handleChange, idDisabling, defaultValue })
         max: field.range[1],
         step: field.type === 'float' ? 'any' : '1'
       }}
-      onChange={(event) => {
-        handleChange(event);
-        setValue(event.value);
-      }}
+      onChange={(event) => setValue(event.target.value)}
       disabled={idDisabling}
       value={value}
     />

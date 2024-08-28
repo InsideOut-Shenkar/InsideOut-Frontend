@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 import dayjs from 'dayjs';
 
 // material-ui
@@ -20,14 +20,14 @@ const commonInputStyle = {
 
 // ==============================|| PATIENT INFORMATION FORM ||============================== //
 
-const PatientsInformation = ({ handler, dob, id, children }) => {
+const PatientsInformation = forwardRef(({ handler, dob, id, children }, ref) => {
   const [idNumber, setIdNumber] = useState('');
   const [dateError, setDateError] = useState(false);
   const [birthDate, setBirthDate] = useState(null);
   const [patternError, setPatternError] = useState(false);
 
   useEffect(() => {
-    const pattern = /^\d{10}$/;
+    const pattern = /^\d{9}$/;
     setPatternError(!pattern.test(idNumber) && !idNumber.length == 0);
   }, [idNumber]);
 
@@ -59,6 +59,7 @@ const PatientsInformation = ({ handler, dob, id, children }) => {
       component="form"
       autoComplete="off"
       onSubmit={handler}
+      ref={ref}
       sx={{
         '& .MuiTextField-root': { m: 1, ...commonInputStyle }
       }}
@@ -70,12 +71,12 @@ const PatientsInformation = ({ handler, dob, id, children }) => {
             fullWidth
             name="idNumber"
             label="ID Number"
-            placeholder="Enter 10 digit ID Number"
-            inputProps={{ maxLength: 10 }}
+            placeholder="Enter 9 digit ID Number"
+            inputProps={{ maxLength: 9 }}
             value={idNumber}
             onChange={(event) => setIdNumber(event.target.value)}
             error={patternError}
-            helperText={patternError ? 'ID Number must be exactly 10 digits' : ''}
+            helperText={patternError ? 'ID Number must be exactly 9 digits' : ''}
           />
         </Grid>
         <Grid item xs={12} sm={6}>
@@ -100,6 +101,6 @@ const PatientsInformation = ({ handler, dob, id, children }) => {
       </Grid>
     </Box>
   );
-};
+});
 
 export default PatientsInformation;

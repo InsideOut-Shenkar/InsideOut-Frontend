@@ -15,7 +15,7 @@ const AdminRoute = ({ children }) => {
   }, []);
 
   if (isAdmin === null) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return isAdmin ? children : <Navigate to={userDefaultPath} />;

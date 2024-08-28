@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 
 // material-ui
 import { Typography, Box, Collapse, Alert, Backdrop, CircularProgress } from '@mui/material';
@@ -7,30 +8,63 @@ import { Typography, Box, Collapse, Alert, Backdrop, CircularProgress } from '@m
 import MainCard from 'components/MainCard';
 import DataTable from 'components/DataTable';
 import { useGetPatients, useDeletePatients } from 'api';
+import { setPatientsList } from 'store/reducers/apiData';
+
+const columns = [
+  {
+    field: 'idNumber',
+    headerName: 'ID Number',
+    flex: 1
+  },
+  {
+    field: 'age',
+    headerName: 'Age',
+    flex: 1
+  },
+  {
+    field: 'assessmentNo',
+    headerName: 'Assessments',
+    flex: 1
+  },
+  {
+    field: 'addedBy',
+    headerName: 'Added by',
+    flex: 1
+  }
+];
 
 // ==============================|| PATIENT LIST PAGE ||============================== //
 
 const PatientsList = () => {
-  const [rows, setRows] = useState([]);
+  const dispatch = useDispatch();
+
   const { fetchData } = useGetPatients();
   const [error, setError] = useState(null);
   const { deletePatients } = useDeletePatients();
+  const [isLoading, setIsLoading] = useState(false);
   const [openCollapse, setOpenCollapse] = useState(false);
   const [openBackdrop, setOpenBackdrop] = useState(false);
 
-  useEffect(() => {
-    const fetchDataAsync = async () => {
-      try {
-        setError(null);
-        const data = await fetchData();
-        setRows(data);
-      } catch (err) {
-        setError(err.message);
-        setOpenCollapse(true);
-      }
-    };
+  const { patientsList } = useSelector((state) => state.apiData);
 
-    fetchDataAsync();
+  const fetchDataAsync = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await fetchData();
+      dispatch(setPatientsList(data));
+    } catch (err) {
+      setError(err.message);
+      setOpenCollapse(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!patientsList) {
+      fetchDataAsync();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount
 
@@ -39,15 +73,14 @@ const PatientsList = () => {
   };
 
   const handleDelete = async (rowSelectionModel) => {
-    const selectedRowsData = rows.filter((row) => rowSelectionModel.includes(row.id));
+    const selectedRowsData = patientsList.filter((row) => rowSelectionModel.includes(row.id));
     const selectedIds = selectedRowsData.map(({ idNumber }) => idNumber);
-    console.log('Deleting rows with ID numbers:', selectedIds);
     try {
       setError(null);
       setOpenBackdrop(true);
       await deletePatients(selectedIds);
       setTimeout(() => {
-        setRows((currentRows) => currentRows.filter((row) => !selectedIds.includes(row.idNumber)));
+        dispatch(setPatientsList(patientsList.filter((row) => !selectedIds.includes(row.idNumber))));
       }, 1000);
     } catch (err) {
       console.error('Error:', err);
@@ -69,7 +102,7 @@ const PatientsList = () => {
         </Alert>
       </Collapse>
       <MainCard content={false} sx={{ mt: 1.5 }}>
-        <DataTable data={rows} handleDelete={handleDelete} />
+        <DataTable data={patientsList} handleDelete={handleDelete} columns={columns} loading={isLoading} reloadHandler={fetchDataAsync} />
       </MainCard>
       <Backdrop sx={{ color: '#fff', zIndex: 2000 }} open={openBackdrop}>
         <CircularProgress color="inherit" />

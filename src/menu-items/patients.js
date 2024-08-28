@@ -22,15 +22,15 @@ const patients = {
       url: '/patients',
       icon: icons.GroupOutlinedIcon,
       breadcrumbs: false
-    },
-    {
-      id: 'add-patient',
-      title: 'Add Patient',
-      type: 'item',
-      url: '/add-patient',
-      icon: icons.PersonAddOutlinedIcon,
-      breadcrumbs: false
     }
+    // {
+    //   id: 'add-patient',
+    //   title: 'Add Patient',
+    //   type: 'item',
+    //   url: '/add-patient',
+    //   icon: icons.PersonAddOutlinedIcon,
+    //   breadcrumbs: false
+    // }
   ]
 };
 

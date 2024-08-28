@@ -6,11 +6,10 @@ import Loadable from 'components/Loadable';
 import MainLayout from 'layout/MainLayout';
 
 // render - dashboard
-const DashboardDefault = Loadable(lazy(() => import('pages/dashboard')));
 const ReportDashboard = Loadable(lazy(() => import('pages/reportDashboard')));
 
 // render - patient
-const PatientRegistration = Loadable(lazy(() => import('pages/patient/PatientRegistration')));
+// const PatientRegistration = Loadable(lazy(() => import('pages/patient/PatientRegistration')));
 const PatientsList = Loadable(lazy(() => import('pages/patient/PatientsList')));
 
 // render - assessment
@@ -29,39 +28,18 @@ const MainRoutes = {
       path: '/',
       element: (
         <UserRoute>
-          <DashboardDefault />
+          <ReportDashboard />
         </UserRoute>
       )
     },
-    {
-      path: 'dashboard',
-      children: [
-        {
-          path: 'default',
-          element: (
-            <UserRoute>
-              <DashboardDefault />
-            </UserRoute>
-          )
-        },
-        {
-          path: 'reports',
-          element: (
-            <UserRoute>
-              <ReportDashboard />
-            </UserRoute>
-          )
-        }
-      ]
-    },
-    {
-      path: 'add-patient',
-      element: (
-        <UserRoute>
-          <PatientRegistration />
-        </UserRoute>
-      )
-    },
+    // {
+    //   path: 'add-patient',
+    //   element: (
+    //     <UserRoute>
+    //       <PatientRegistration />
+    //     </UserRoute>
+    //   )
+    // },
     {
       path: 'patients',
       element: (
@@ -79,7 +57,7 @@ const MainRoutes = {
       )
     },
     {
-      path: 'report',
+      path: 'report/:reportID',
       element: (
         <UserRoute>
           <Report />

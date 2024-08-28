@@ -1,8 +1,12 @@
+import getCurrentUserToken from 'utils/aws/cognito/getCurrentUserToken';
+
 // ==============================|| ADD USER HOOK ||============================== //
 
 const useAddUser = () => {
   const addUser = async (username, fullName, role) => {
     try {
+      const token = await getCurrentUserToken();
+
       const body = {
         username: username,
         full_name: fullName,
@@ -11,7 +15,7 @@ const useAddUser = () => {
 
       const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/users`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body)
       });
 

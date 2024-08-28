@@ -59,8 +59,12 @@ export default function ReportDialog({ report }) {
     setOpen(false);
   };
 
-  useEffect(() => {
+  const myFalse = false;
+  if (myFalse) {
     handleOpen();
+  }
+
+  useEffect(() => {
     setRiskStatus(reportStatus(report.risk));
   }, [report]);
 

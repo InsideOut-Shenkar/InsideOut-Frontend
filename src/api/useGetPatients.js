@@ -1,3 +1,5 @@
+import getCurrentUserToken from 'utils/aws/cognito/getCurrentUserToken';
+
 // ==============================|| GET PATIENTS HOOK ||============================== //
 
 const calculateAge = (dob) => {
@@ -21,15 +23,24 @@ const calculateAge = (dob) => {
 const useGetPatients = () => {
   const fetchData = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/view/patients`);
+      const token = await getCurrentUserToken();
+
+      const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/view/patients`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(data.details ? `${data.details}, details: ${data.details}` : data.error || 'Unknown error occurred');
       }
 
-      const updatedJson = data.map((row, index) => ({
-        id: index,
+      const updatedJson = data.map((row) => ({
+        id: row['id'],
         idNumber: row['id_number'],
         age: calculateAge(row['date_of_birth']),
         assessmentNo: row['report_count'],

@@ -12,15 +12,6 @@ import FieldSelector from 'components/FieldSelector';
 
 const DynamicInputs = ({ inputs_type, defaultValues }) => {
   const [fields, setFields] = useState([]);
-  const [inputValues, setInputValues] = useState({});
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setInputValues((prevValues) => ({
-      ...prevValues,
-      [name]: value
-    }));
-  };
 
   useEffect(() => {
     async function fetchFields() {
@@ -28,32 +19,12 @@ const DynamicInputs = ({ inputs_type, defaultValues }) => {
         const results = await MedicalFields.get(inputs_type);
         const medFields = results.filter(({ name }) => name !== 'age' && name !== 'vital status');
         setFields(medFields);
-        const initialValues = medFields.reduce((acc, medField) => {
-          acc[medField.name] = undefined;
-          return acc;
-        }, {});
-
-        setInputValues(initialValues);
       } catch (error) {
         console.error('Failed to fetch medical fields:', error);
       }
     }
     fetchFields();
   }, [inputs_type]);
-
-  useEffect(() => {
-    if (defaultValues) {
-      const updatedInputValues = { ...inputValues };
-      const fieldsName = fields.map(({ name }) => name);
-      Object.keys(defaultValues).forEach((key) => {
-        if (key in fieldsName) {
-          updatedInputValues[key] = defaultValues[key];
-        }
-      });
-      console.log('updatedInputValues', updatedInputValues);
-      setInputValues(updatedInputValues);
-    }
-  }, [fields, defaultValues, inputValues]);
 
   return (
     <>
@@ -63,8 +34,7 @@ const DynamicInputs = ({ inputs_type, defaultValues }) => {
           <Grid item xs={12} sm={6} key={field.id || index}>
             <FieldSelector
               field={field}
-              handleChange={handleChange}
-              defaultValue={defaultValues && field.name in defaultValues ? defaultValues[field.name] : undefined}
+              defaultValue={defaultValues && field.name in defaultValues ? defaultValues[field.name] : ''}
               index={index}
             />
           </Grid>
@@ -75,8 +45,7 @@ const DynamicInputs = ({ inputs_type, defaultValues }) => {
           <Grid item xs={12} sm={6} key={field.id || index}>
             <NumericField
               field={field}
-              handleChange={handleChange}
-              defaultValue={defaultValues && field.name in defaultValues ? defaultValues[field.name] : undefined}
+              defaultValue={defaultValues && field.name in defaultValues ? defaultValues[field.name] : ''}
               index={index}
             />
           </Grid>

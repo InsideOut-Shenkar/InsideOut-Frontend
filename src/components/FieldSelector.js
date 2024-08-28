@@ -5,7 +5,7 @@ import { TextField, Autocomplete } from '@mui/material';
 
 // ==============================|| FIELD SELECTOR ||============================== //
 
-const FieldSelector = ({ field, handleChange, idDisabling, defaultValue, index }) => {
+const FieldSelector = ({ field, idDisabling, defaultValue, index }) => {
   const [value, setValue] = useState(null);
 
   useEffect(() => {
@@ -26,16 +26,7 @@ const FieldSelector = ({ field, handleChange, idDisabling, defaultValue, index }
         id: index
       }))}
       fullWidth
-      onChange={(event, value) => {
-        const syntheticEvent = {
-          target: {
-            name: field.name,
-            value: value?.label
-          }
-        };
-        handleChange(syntheticEvent);
-        setValue(value);
-      }}
+      onChange={(event, value) => setValue(value)}
       value={value}
       renderInput={(params) => <TextField {...params} name={field.name} label={field.name} required />}
       isOptionEqualToValue={(option, value) => option.id === value.id}

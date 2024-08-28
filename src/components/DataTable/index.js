@@ -10,30 +10,7 @@ import TableToolbar from './tableToolbar';
 import NoRowsOverlay from './NoRowsOverlay';
 import DeleteDialog from './DeleteDialog';
 
-const columns = [
-  {
-    field: 'idNumber',
-    headerName: 'ID Number',
-    flex: 1
-  },
-  {
-    field: 'age',
-    headerName: 'Age',
-    flex: 1
-  },
-  {
-    field: 'assessmentNo',
-    headerName: 'Assessments',
-    flex: 1
-  },
-  {
-    field: 'addedBy',
-    headerName: 'Added by',
-    flex: 1
-  }
-];
-
-const DataTable = ({ data, handleDelete }) => {
+const DataTable = ({ data, handleDelete, columns, reloadHandler, loading }) => {
   const [openDialog, setOpenDialog] = useState(false);
   const [rowSelectionModel, setRowSelectionModel] = useState([]);
   const [resize, setResize] = useState(false);
@@ -63,7 +40,7 @@ const DataTable = ({ data, handleDelete }) => {
         <DataGrid
           autoHeight
           columns={columns}
-          rows={data}
+          rows={data || []}
           initialState={{
             pagination: {
               paginationModel: { page: 0, pageSize: 10 }
@@ -76,7 +53,9 @@ const DataTable = ({ data, handleDelete }) => {
             toolbar: handleDelete
               ? {
                   selectedRowCount: rowSelectionModel.length,
-                  onDeleteSelected: handleClickDelete
+                  onDeleteSelected: handleClickDelete,
+                  reloadHandler: reloadHandler,
+                  loading: loading
                 }
               : undefined
           }}

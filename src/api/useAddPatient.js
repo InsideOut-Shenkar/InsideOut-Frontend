@@ -1,10 +1,13 @@
 import { parse, format } from 'date-fns';
+import getCurrentUserToken from 'utils/aws/cognito/getCurrentUserToken';
 
 // ==============================|| ADD PATIENT HOOK ||============================== //
 
 const useAddPatient = () => {
   const addPatient = async (idNumber, birthDate, createdBy) => {
     try {
+      const token = await getCurrentUserToken();
+
       // Parse the birthDate from "MM/dd/yyyy" format and format it to "yyyy-MM-dd" format
       const parsedDate = parse(birthDate, 'MM/dd/yyyy', new Date());
       const formattedDate = format(parsedDate, 'yyyy-MM-dd');
@@ -17,7 +20,7 @@ const useAddPatient = () => {
 
       const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/patients`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body)
       });
 

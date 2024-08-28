@@ -1,8 +1,12 @@
+import getCurrentUserToken from 'utils/aws/cognito/getCurrentUserToken';
+
 // ==============================|| ADD MEDICAL DATA HOOK ||============================== //
 
 const useAddMedicalData = () => {
   const addMedicalData = async (medicalData, idNumber) => {
     try {
+      const token = await getCurrentUserToken();
+
       const body = {
         patient_id: idNumber,
         medical_info: medicalData
@@ -10,7 +14,7 @@ const useAddMedicalData = () => {
 
       const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/medical-data`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify(body)
       });
 

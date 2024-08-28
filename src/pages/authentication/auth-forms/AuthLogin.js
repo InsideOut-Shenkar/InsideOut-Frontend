@@ -65,7 +65,6 @@ const AuthLogin = ({ setSnackbarOpen, formMode }) => {
             navigate('/');
           },
           onFailure: (err) => {
-            console.error('Authentication failed:', err);
             setStatus({ success: false });
             setErrors({ submit: err.message });
             setSubmitting(false);
@@ -113,8 +112,8 @@ const AuthLogin = ({ setSnackbarOpen, formMode }) => {
     <>
       <Formik
         initialValues={{
-          email: 'demo@shiba.ac.il',
-          password: '123456',
+          email: 'demo@se.shenkar.ac.il',
+          password: 'Aa12345678!',
           submit: null
         }}
         validationSchema={Yup.object().shape({

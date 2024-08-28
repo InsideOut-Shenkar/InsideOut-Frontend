@@ -1,104 +1,238 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { ReactTyped } from 'react-typed';
 
 // material-ui
-import { Box, Step, Alert, Button, Stepper, Backdrop, Collapse, StepButton, Typography, CircularProgress } from '@mui/material';
+import { Box, Step, Alert, Button, Stepper, Collapse, StepButton, Typography, Snackbar, ButtonBase } from '@mui/material';
 import ErrorIcon from '@mui/icons-material/Error';
 
 // project import
+import LottieHeart from './LottieHeart';
 import MainCard from 'components/MainCard';
 import { DynamicInputs } from 'components/forms';
-import { useGetPatient, useGetMedData } from 'api';
+import getCurrentUserAttributes from 'utils/aws/cognito/getCurrentUserAttributes';
 import { PatientsInformation, MedicalInformation, Setting } from 'components/forms';
+import {
+  useGetPatient,
+  useGetMedData,
+  useRiskAssessment,
+  useAddMedicalFeature,
+  useUpdateMedicalFeature,
+  useGetPatientByIDNumber,
+  useAddPatient,
+  useAddMedicalData
+} from 'api';
 
-const firstStepComponent = (
-  <PatientsInformation>
-    <DynamicInputs inputs_type={[{ information_type: 'personal' }]} />
-  </PatientsInformation>
-);
+// assets
+import MedicalFields from 'assets/MedicalFields';
 
-const secondStepComponent = (
-  <MedicalInformation>
-    <DynamicInputs inputs_type={[{ information_type: 'medical' }]} />
-  </MedicalInformation>
-);
+const calculateAge = (birthdate) => {
+  const today = new Date();
+  const birthDate = new Date(birthdate);
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDifference = today.getMonth() - birthDate.getMonth();
+  if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+};
 
-const thirdStepComponent = <Setting />;
+const getUserID = async () => {
+  try {
+    const userAttributes = await getCurrentUserAttributes();
+    return userAttributes['custom:user_rds_id'];
+  } catch (error) {
+    throw new Error(`Error fetching user attributes: ${error.message}`);
+  }
+};
+
+const findDifferences = (dataInitialState, medData) => {
+  const differences = {
+    changed: {},
+    added: {}
+  };
+
+  // Find keys with changed values
+  Object.keys(dataInitialState).forEach((key) => {
+    if (key in medData && dataInitialState[key] !== medData[key]) {
+      differences.changed[key] = medData[key];
+    }
+  });
+
+  // Find new key-value pairs
+  Object.keys(medData).forEach((key) => {
+    if (!(key in dataInitialState)) {
+      differences.added[key] = medData[key];
+    }
+  });
+
+  return differences;
+};
 
 // ==============================|| RISK ASSESSMENT FORM PAGE ||============================== //
 
 const AssessmentForm = () => {
-  const [error, setError] = useState('');
-  const [medData, setMedData] = useState({});
-  const [medInput, setMedInput] = useState({});
-  const [idNumber, setIdNumber] = useState('');
-  const [seenSteps, setSeenSteps] = useState({});
-  const [medDataID, setMedDataID] = useState('');
-  const [completed, setCompleted] = useState({});
-  const [activeStep, setActiveStep] = useState(0);
-  const [openBackdrop, setOpenBackdrop] = useState(false);
-  const [openCollapse, setOpenCollapse] = useState(false);
-  const [risk, setRisk] = useState(null);
+  const medicalFormRef = useRef(null);
+  const settingFormRef = useRef(null);
+  const personalFormRef = useRef(null);
+
   const { getPatient } = useGetPatient();
   const { getMedData } = useGetMedData();
+  const { addPatient } = useAddPatient();
+  const { addMedicalData } = useAddMedicalData();
+  const { riskAssessment } = useRiskAssessment();
+  const { addMedicalFeature } = useAddMedicalFeature();
+  const { getPatientByIDNumber } = useGetPatientByIDNumber();
+  const { updateMedicalFeature } = useUpdateMedicalFeature();
+
+  const [dob, setDob] = useState(null);
+  const [error, setError] = useState('');
+  const [idNumber, setIdNumber] = useState('');
+  const [needEdit, setNeedEdit] = useState({});
+  const [reportID, setReportID] = useState(null);
+  const [seenSteps, setSeenSteps] = useState({});
+  const [completed, setCompleted] = useState({});
+  const [savedForms, setSavedForms] = useState(0);
+  const [activeStep, setActiveStep] = useState(0);
+  const [submitted, setSubmitted] = useState(false);
+  const [enableEffect, setEnableEffect] = useState(true);
+  const [runAnimation, setRunAnimation] = useState(false);
+  const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [openBackdrop, setOpenBackdrop] = useState(false);
+  const [openCollapse, setOpenCollapse] = useState(false);
+  const [snackbarMessage, setOpenMessage] = useState(null);
+  const [dataInitialState, setDataInitialState] = useState({});
+  const [prevCompletedSteps, setPrevCompletedSteps] = useState(0);
+  const [values, setValues] = useState({
+    personal: {},
+    medical: {},
+    weight: {}
+  });
+
+  const patientID = useSelector((state) => state.patientData.patientID);
+  const medDataID = useSelector((state) => state.patientData.medDataID);
+
+  const stepsSubmitsHandler = (event, category) => {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const entries = Object.fromEntries(formData.entries());
+    const { idNumber, dob, ...formValues } = entries;
+    setValues((previous) => ({
+      ...previous,
+      [category]: formValues
+    }));
+    if (form === personalFormRef.current) {
+      setIdNumber(idNumber);
+      setDob(dob);
+    }
+    console.log('Form values:', formValues);
+    if (prevCompletedSteps < completedSteps()) {
+      handleNext();
+      setPrevCompletedSteps(completedSteps());
+    }
+  };
 
   const steps = [
     {
       label: "Patient's information",
-      component: firstStepComponent
+      component: (
+        <PatientsInformation ref={personalFormRef} handler={(event) => stepsSubmitsHandler(event, 'personal')} id={idNumber} dob={dob}>
+          <DynamicInputs inputs_type={[{ information_type: 'personal' }]} defaultValues={values.personal} />
+        </PatientsInformation>
+      )
     },
     {
       label: 'Medical information',
-      component: secondStepComponent
+      component: (
+        <MedicalInformation ref={medicalFormRef} handler={(event) => stepsSubmitsHandler(event, 'medical')}>
+          <DynamicInputs inputs_type={[{ information_type: 'medical' }]} defaultValues={values.medical} />
+        </MedicalInformation>
+      )
     },
     {
       label: 'Setting',
-      component: thirdStepComponent
+      component: <Setting ref={settingFormRef} defaultValues={values.weight} handler={(event) => stepsSubmitsHandler(event, 'weight')} />
     }
   ];
 
   const handleSubmit = async () => {
-    // event.preventDefault();
     setOpenBackdrop(true);
-    const body = {
-      patient_id: idNumber,
-      user_id: 1,
-      medical_info: medInput
-    };
-    console.log(body);
+    setSubmitted(true);
+    setEnableEffect(false);
+    setRunAnimation(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_SERVER_ENDPOINT}/assessment`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        console.log(data);
-        throw new Error(data.details ? `${data.error}, details: ${data.details}.` : data.error || 'Unknown error occurred');
+      const userID = await getUserID();
+      let localPatientID = patientID || null;
+      if (!patientID) {
+        try {
+          const patient = await getPatientByIDNumber(idNumber);
+          console.log('getPatientByIDNumber', patient);
+          localPatientID = patient.id;
+        } catch (err) {
+          if (err.message?.includes('Patient not found')) {
+            try {
+              const addResponse = await addPatient(idNumber, dob, userID);
+              setOpenSnackbar(true);
+              setOpenMessage(addResponse.message);
+              localPatientID = addResponse.id;
+            } catch (addError) {
+              console.error('Error adding patient:', addError);
+              throw new Error(addError);
+            }
+          } else {
+            console.error('Error fetching patient:', err);
+            throw new Error(err);
+          }
+        }
       }
-      setRisk(data);
-      console.log('response:', data);
-      setError('');
+
+      const medData = {
+        ...values.personal,
+        ...values.medical,
+        age: calculateAge(dob)
+      };
+      let localMedDataID = medDataID || null;
+      if (!medDataID) {
+        const medDataRes = await addMedicalData(medData, localPatientID);
+        localMedDataID = medDataRes.id;
+      } else {
+        const { changed, added } = findDifferences(dataInitialState, medData);
+        if (!isObjEmpty(changed)) {
+          await updateMedicalFeature(localMedDataID, changed);
+        }
+        if (!isObjEmpty(added)) {
+          await addMedicalFeature(localMedDataID, added);
+        }
+      }
+
+      console.log('before risk assessment', values);
+
+      const reportRes = await riskAssessment(userID, localPatientID, localMedDataID, values.weight);
+      const reportID = reportRes.id;
+      setReportID(reportID);
+      console.log('response:', reportID);
+      setError(null);
     } catch (error) {
+      setSubmitted(false);
       console.error('Error:', error);
       setError(error.message);
     } finally {
-      setTimeout(() => {
-        setOpenBackdrop(false);
-        setOpenCollapse(true);
-      }, 2000);
+      handleReset();
+      setOpenBackdrop(false);
+      setOpenCollapse(true);
+      setRunAnimation(false);
     }
   };
 
-  const myFalse = false;
+  const handleSavedForms = () => {
+    setSavedForms((previous) => previous + 1);
+  };
 
-  if (myFalse) {
-    console.log(medData);
-    setMedInput([]);
-    handleSubmit();
-  }
+  const isAllFormsSaved = () => {
+    return savedForms === totalSteps();
+  };
 
   const handleCloseCollapse = () => {
     setOpenCollapse(false);
@@ -113,7 +247,6 @@ const AssessmentForm = () => {
   };
 
   const isLastStep = () => {
-    console.log(medDataID);
     return activeStep === totalSteps() - 1;
   };
 
@@ -122,9 +255,17 @@ const AssessmentForm = () => {
   };
 
   const handleNext = () => {
-    const newActiveStep = isLastStep() && !allStepsCompleted() ? steps.findIndex((step, i) => !(i in completed)) : activeStep + 1;
+    const nextIncompleteStep = (fromIndex = activeStep + 1) => steps.findIndex((step, i) => !(i in completed) && i >= fromIndex);
+
+    let newActiveStep = nextIncompleteStep();
+    if (newActiveStep === -1 || isLastStep()) {
+      newActiveStep = nextIncompleteStep(0);
+    }
+
+    if (newActiveStep !== -1) {
+      setActiveStep(newActiveStep);
+    }
     handleSeen();
-    setActiveStep(newActiveStep);
   };
 
   const handleBack = () => {
@@ -141,13 +282,28 @@ const AssessmentForm = () => {
       ...previous,
       [activeStep]: true
     }));
-    handleNext();
+  };
+
+  const handleUnComplete = () => {
+    setNeedEdit((previous) => ({
+      ...previous,
+      [activeStep]: true
+    }));
+    setCompleted((previous) => {
+      const updated = { ...previous };
+      delete updated[activeStep];
+      return updated;
+    });
+    setPrevCompletedSteps((previous) => previous - 1);
   };
 
   const handleReset = () => {
+    setSavedForms(0);
     setActiveStep(0);
     setCompleted({});
     setSeenSteps({});
+    setNeedEdit({});
+    setPrevCompletedSteps(0);
   };
 
   const isStepFailed = (step) => {
@@ -161,54 +317,118 @@ const AssessmentForm = () => {
     }));
   };
 
+  const isObjEmpty = (obj) => {
+    return Object.keys(obj).length === 0;
+  };
+
+  const handleUnNeed = (step) => {
+    setNeedEdit((previous) => {
+      const updated = { ...previous };
+      delete updated[step];
+      return updated;
+    });
+  };
+
+  const handleSnackbarClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackbar(false);
+  };
+
+  const handleFormSubmission = (formRef, needEdit, valuesKey, step) => {
+    if (formRef?.current && ((needEdit && needEdit[step]) || isObjEmpty(values[valuesKey]))) {
+      if (formRef.current.checkValidity()) {
+        // Create a synthetic event object to pass to handleSubmit
+        const syntheticEvent = new Event('submit', {
+          bubbles: true,
+          cancelable: true
+        });
+        // Dispatch the synthetic event to the form
+        formRef.current.dispatchEvent(syntheticEvent);
+      } else {
+        // If the form is invalid, trigger the native form validation messages
+        setCompleted((previous) => {
+          const updated = { ...previous };
+          delete updated[activeStep];
+          return updated;
+        });
+        formRef.current.reportValidity();
+      }
+      handleUnNeed(step);
+      handleSavedForms();
+    }
+  };
+
   useEffect(() => {
     async function fetchData() {
       try {
-        if (idNumber) {
-          console.log('idNumber', idNumber);
-          const pattern = /^\d{10}$/;
-          if (pattern.test(idNumber)) {
-            const patient = await getPatient(idNumber);
-            console.table(patient);
-            setIdNumber(idNumber);
-            if (medDataId) {
-              console.log('medDataId', medDataId);
-              const medData = await getMedData(medDataId);
-              console.table(medData);
-              setMedDataID(medDataId);
-              setMedData((previous) => ({
-                ...previous,
-                ...medData.reduce((acc, data) => {
-                  acc[data.name] = data.value;
-                  return acc;
-                }, {}),
-                idNumber: patient['id_number'],
-                dob: patient['date_of_birth']
-              }));
-            }
-          }
+        if (patientID && medDataID) {
+          const patient = await getPatient(patientID);
+          console.table(patient);
+          setIdNumber(patientID.idNumber);
+          setDob(patient.dob);
+
+          const medData = await getMedData(medDataID);
+          console.table(medData);
+          const categorizedMedData = await MedicalFields.categorize(medData);
+          console.log(categorizedMedData);
+          setDataInitialState(
+            ...medData.reduce((acc, data) => {
+              acc[data.name] = data.value;
+              return acc;
+            }, {})
+          );
+          setValues((previous) => ({
+            ...previous,
+            ...categorizedMedData
+          }));
         }
       } catch (error) {
         console.error('Failed to fetch:', error);
       }
     }
 
-    fetchData();
-  }, []);
+    if (enableEffect) {
+      fetchData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [patientID, medDataID, enableEffect]);
+
+  useEffect(() => {
+    const forms = [
+      { ref: personalFormRef, needEdit: needEdit['0'], valuesKey: 'personal', step: 0 },
+      { ref: medicalFormRef, needEdit: needEdit['1'], valuesKey: 'medical', step: 1 },
+      { ref: settingFormRef, needEdit: needEdit['2'], valuesKey: 'weight', step: 2 }
+    ];
+    forms.forEach(({ ref, needEdit, valuesKey, step }) => {
+      if (completed[step]) {
+        handleFormSubmission(ref, needEdit, valuesKey, step);
+      }
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [completed]);
+
+  useEffect(() => handleReset(), []);
 
   return (
-    <Box sx={{ height: '83vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: '75vh' }}>
       <Typography variant="h3" gutterBottom>
-        Assessment Risk
+        Risk Assessment
       </Typography>
       <Collapse in={openCollapse}>
-        <Alert
-          variant="filled"
-          severity={error ? 'error' : risk === 'low' ? 'info' : risk === 'high' ? 'error' : 'warning'}
-          sx={{ color: 'white', my: 3 }}
-          onClose={handleCloseCollapse}
-        >
-          {error ? error : `The risk is ${risk}.`}
+        <Alert variant="filled" severity={error ? 'error' : 'info'} sx={{ color: 'white', my: 3 }} onClose={handleCloseCollapse}>
+          {error ? error : ' Your risk assessment report is ready. Please click the link below to view the report. '}
+          {!error && (
+            <ButtonBase
+              disableRipple
+              component={RouterLink}
+              to={`/report/${reportID}`}
+              sx={{ color: 'inherit', textDecoration: 'underline' }}
+            >
+              View Risk Assessment Report
+            </ButtonBase>
+          )}
         </Alert>
       </Collapse>
       <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -233,17 +453,41 @@ const AssessmentForm = () => {
             );
           })}
         </Stepper>
-        <Box sx={{ flex: 0.9, display: 'flex', flexDirection: 'column'  }}>
-          {allStepsCompleted() ? (
-            <>
-              <Typography sx={{ mt: 2, mb: 1 }}>All steps completed - you&apos;re finished</Typography>
+        <Box sx={{ flex: 0.9, display: 'flex', flexDirection: 'column' }}>
+          {allStepsCompleted() && isAllFormsSaved() ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
+              <MainCard sx={{ my: 3, p: 4, textAlign: 'center' }}>
+                <LottieHeart run={runAnimation} />
+                {!submitted ? (
+                  <>
+                    <Typography variant="h5" sx={{ mt: 2, mb: 3 }}>
+                      All steps completed
+                    </Typography>
+                    <Typography variant="body1" sx={{ mb: 3 }}>
+                      Please submit the form to receive a risk assessment.
+                    </Typography>
+                  </>
+                ) : (
+                  runAnimation && (
+                    <Typography variant="h5" sx={{ mt: 2, mb: 3 }}>
+                      Computing <ReactTyped strings={['...']} typeSpeed={100} loop />
+                    </Typography>
+                  )
+                )}
+              </MainCard>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
+                <Button onClick={handleReset} disabled={openBackdrop}>
+                  Reset
+                </Button>
                 <Box sx={{ flex: '1 1 auto' }} />
-                <Button onClick={handleReset}>Reset</Button>
+                <Box sx={{ flex: '1 1 auto' }} />
+                <Button variant="contained" color="primary" onClick={handleSubmit} disabled={submitted}>
+                  Submit
+                </Button>
               </Box>
-            </>
+            </Box>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between',  height: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <MainCard sx={{ my: 3 }}>{steps[activeStep].component}</MainCard>
               <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
                 <Button color="inherit" disabled={activeStep === 0} onClick={handleBack} sx={{ mr: 1 }}>
@@ -255,20 +499,20 @@ const AssessmentForm = () => {
                 </Button>
                 {activeStep !== steps.length &&
                   (completed[activeStep] ? (
-                    <Typography variant="caption" sx={{ display: 'inline-block' }}>
-                      Step {activeStep + 1} already completed
-                    </Typography>
+                    <Button onClick={handleUnComplete}>Edit</Button>
                   ) : (
-                    <Button onClick={handleComplete}>{completedSteps() === totalSteps() - 1 ? 'Finish' : 'Complete Step'}</Button>
+                    <Button onClick={handleComplete}>Save</Button>
                   ))}
               </Box>
             </Box>
           )}
         </Box>
       </Box>
-      <Backdrop sx={{ color: '#fff', zIndex: 2000 }} open={openBackdrop}>
-        <CircularProgress color="inherit" />
-      </Backdrop>
+      <Snackbar open={openSnackbar} autoHideDuration={5000} onClose={handleSnackbarClose}>
+        <Alert severity="success" variant="filled" sx={{ width: '100%' }} onClose={handleSnackbarClose}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

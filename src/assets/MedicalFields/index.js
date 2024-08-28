@@ -29,6 +29,26 @@ class MedicalFieldsFetcher {
     }
   }
 
+  async categorize(list = []) {
+    if (!this.dataLoaded) {
+      await this.fetchData();
+    }
+
+    return list.reduce(
+      (acc, obj) => {
+        const category = this.data.find((item) => item.standard_column_name === obj.name)?.information_type || 'unknown';
+        acc[category] = acc[category] || {};
+        acc[category][obj.name] = obj.value;
+        return acc;
+      },
+      { personal: {}, medical: {}, unknown: {} }
+    );
+  }
+
+  feature_categorize(feature = {}) {
+    return this.data.find((item) => item.standard_column_name === feature.name)?.information_type || 'unknown';
+  }
+
   async get(includes = []) {
     if (!this.dataLoaded) {
       await this.fetchData();

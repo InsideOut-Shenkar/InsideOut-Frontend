@@ -71,37 +71,38 @@ const WeightSlider = styled(Slider)({
   }
 });
 
-const percentage = 100;
-
 // ==============================|| SETTING FORM ||============================== //
 
-const Setting = ({ handler }) => {
+const Setting = forwardRef(({ handler, defaultValues }, ref) => {
   const [open, setOpen] = useState(false);
 
-  const [slider1Value, setSlider1Value] = useState(percentage * 0.05);
-  const [slider2Value, setSlider2Value] = useState(percentage * 0.95);
+  const [slider1Value, setSlider1Value] = useState(1);
+  const [slider2Value, setSlider2Value] = useState(1);
 
   const handleSlider1Change = (event, newValue) => {
     setSlider1Value(newValue);
-    setSlider2Value(percentage - newValue);
   };
 
   const handleSlider2Change = (event, newValue) => {
     setSlider2Value(newValue);
-    setSlider1Value(percentage - newValue);
   };
 
   const handleClose = () => {
-    setSlider1Value(percentage * 0.05);
-    setSlider2Value(percentage * 0.95);
+    setSlider1Value(1);
+    setSlider2Value(1);
     setOpen(false);
   };
 
   useEffect(() => {
-    if (slider1Value === 0 || slider2Value === 0) {
+    if (slider1Value === 0 && slider2Value === 0) {
       setOpen(true);
     }
   }, [slider1Value, slider2Value]);
+
+  useEffect(() => {
+    setSlider1Value(Number(defaultValues?.weight_1 || 1));
+    setSlider2Value(Number(defaultValues?.weight_2 || 1));
+  }, [defaultValues]);
 
   return (
     <Box>
@@ -109,6 +110,7 @@ const Setting = ({ handler }) => {
         component="form"
         autoComplete="off"
         onSubmit={handler}
+        ref={ref}
         sx={{
           '& .MuiTextField-root': { m: 1, ...commonInputStyle },
           paddingTop: 5,
@@ -117,18 +119,36 @@ const Setting = ({ handler }) => {
       >
         <Grid container spacing={3}>
           <Grid item xs={12} container justifyContent="center">
-            <Grid sm={6}>
+            <Grid item sm={6}>
               <FormControl component="fieldset" fullWidth>
-                <FormLabel component="legend">Dataset 1 Weight</FormLabel>
-                <WeightSlider value={slider1Value} onChange={handleSlider1Change} valueLabelDisplay="auto" aria-label="slider-1" />
+                <FormLabel component="legend" id="label">
+                  To what extent is the patient&apos;s data related to lung cancer?
+                </FormLabel>
+                <WeightSlider
+                  value={slider1Value}
+                  onChange={handleSlider1Change}
+                  valueLabelDisplay="auto"
+                  aria-label="slider-1"
+                  name="weight_1"
+                  max={5}
+                  marks
+                />
               </FormControl>
             </Grid>
           </Grid>
           <Grid item xs={12} container justifyContent="center">
-            <Grid sm={6}>
+            <Grid item sm={6}>
               <FormControl component="fieldset" fullWidth>
-                <FormLabel component="legend">Dataset 2 Weight</FormLabel>
-                <WeightSlider value={slider2Value} onChange={handleSlider2Change} valueLabelDisplay="auto" aria-label="slider-2" />
+                <FormLabel component="legend">To what extent is the patient&apos;s data related to general in-hospital outcomes?</FormLabel>
+                <WeightSlider
+                  value={slider2Value}
+                  onChange={handleSlider2Change}
+                  valueLabelDisplay="auto"
+                  aria-label="slider-2"
+                  name="weight_2"
+                  max={5}
+                  marks
+                />
               </FormControl>
             </Grid>
           </Grid>
@@ -142,10 +162,11 @@ const Setting = ({ handler }) => {
         onClose={handleClose}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle>{'Weight Error'}</DialogTitle>
+        <DialogTitle>Weights Error</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-slide-description">
-            Each dataset must have a weight greater than 0. Weights ensure proper risk assessment by utilizing both datasets.
+            Both weights cannot be set to 0. Please provide a non-zero weight for at least one group models. Setting both weights to 0
+            disables the risk assessment, making it ineffective.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -154,6 +175,6 @@ const Setting = ({ handler }) => {
       </Dialog>
     </Box>
   );
-};
+});
 
 export default Setting;

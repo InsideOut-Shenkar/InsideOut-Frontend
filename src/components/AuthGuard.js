@@ -10,12 +10,10 @@ const AuthGuard = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { pathname } = location;
+  const cognitoUser = userPool.getCurrentUser();
 
   useEffect(() => {
     const checkAuth = () => {
-      const cognitoUser = userPool.getCurrentUser();
-      console.log('CurrentUser', cognitoUser);
-
       if (cognitoUser) {
         cognitoUser.getSession((err, session) => {
           if (err || !session.isValid()) {
@@ -30,7 +28,7 @@ const AuthGuard = ({ children }) => {
     };
 
     checkAuth();
-  }, [pathname, navigate]);
+  }, [pathname, navigate, cognitoUser]);
 
   return children || null;
 };

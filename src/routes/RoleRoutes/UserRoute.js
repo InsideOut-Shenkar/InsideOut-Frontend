@@ -15,7 +15,7 @@ const UserRoute = ({ children }) => {
   }, []);
 
   if (isUser === null) {
-    return <div>Loading...</div>; // Or a loading spinner
+    return <div>Loading...</div>;
   }
 
   return isUser ? children : <Navigate to={adminDefaultPath} />;
