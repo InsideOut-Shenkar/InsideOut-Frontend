@@ -20,11 +20,11 @@ The InsideOut frontend serves as the user interface for interacting with the bac
 
 ## Features
 
-- **Designed UI**: Built with Material-UI, ensuring a consistent design across devices.
-- **Data Visualization**: Utilizes libraries like ApexCharts and react-gauge-component to present data in an easily digestible format.
-- **Form Management**: Powered by Formik and Yup for robust form validation and state management.
-- **Authentication**: Integrated with AWS Cognito for secure user authentication.
-- **Routing and State Management**: Uses React Router for client-side routing and Redux Toolkit for state management.
+- `Designed UI`: Built with Material-UI, ensuring a consistent design across devices.
+- `Data Visualization`: Utilizes libraries like ApexCharts and react-gauge-component to present data in an easily digestible format.
+- `Form Management`: Powered by Formik and Yup for robust form validation and state management.
+- `Authentication`: Integrated with AWS Cognito for secure user authentication.
+- `Routing and State Management`: Uses React Router for client-side routing and Redux Toolkit for state management.
 
 ## Installation
 
@@ -40,17 +40,17 @@ npm install
 
 The application relies on several environment variables to configure various aspects of the system. These variables must be defined in a `.env` file in the root of the project. Here are the required environment variables:
 
-- **REACT_APP_VERSION**: The current version of the application.
-- **GENERATE_SOURCEMAP**: Set to `false` to disable source map generation for production builds.
-- **REACT_APP_SERVER_ENDPOINT**: The endpoint URL of the backend server.
-- **REACT_APP_ACCESS_KEY_ID**: AWS Access Key ID for authentication.
-- **REACT_APP_SECRET_ACCESS_KEY**: AWS Secret Access Key for authentication.
-- **REACT_APP_S3_REGION**: The AWS region where the S3 bucket is located.
-- **REACT_APP_S3_NAME**: The name of the S3 bucket used by the application.
-- **REACT_APP_MF_FILE_NAME**: The name of the multifactor authentication file.
-- **REACT_APP_USER_POOL**: The Cognito User Pool ID for user authentication.
-- **REACT_APP_CLIENT_ID**: The Cognito Client ID for user authentication.
-- **REACT_APP_AWS_REGION**: The AWS region for the Cognito User Pool and other services.
+- `REACT_APP_VERSION`: The current version of the application.
+- `GENERATE_SOURCEMAP`: Set to `false` to disable source map generation for production builds.
+- `REACT_APP_SERVER_ENDPOINT`: The endpoint URL of the backend server.
+- `REACT_APP_ACCESS_KEY_ID`: AWS Access Key ID for authentication.
+- `REACT_APP_SECRET_ACCESS_KEY`: AWS Secret Access Key for authentication.
+- `REACT_APP_S3_REGION`: The AWS region where the S3 bucket is located.
+- `REACT_APP_S3_NAME`: The name of the S3 bucket used by the application.
+- `REACT_APP_MF_FILE_NAME`: The name of the multifactor authentication file.
+- `REACT_APP_USER_POOL`: The Cognito User Pool ID for user authentication.
+- `REACT_APP_CLIENT_ID`: The Cognito Client ID for user authentication.
+- `REACT_APP_AWS_REGION`: The AWS region for the Cognito User Pool and other services.
 
 ## Usage
 
@@ -79,12 +79,12 @@ npm run build
 
 The project relies on several key dependencies:
 
-- **React**: A JavaScript library for building user interfaces.
-- **Material-UI**: A popular React UI framework.
-- **Redux Toolkit**: Official, opinionated, and powerful set of tools for efficient Redux development.
-- **ApexCharts**: A modern charting library for visualizing data.
-- **Formik & Yup**: Libraries for form state management and validation.
-- **AWS SDK & Cognito**: Provides access to AWS services, including user authentication.
+- `React`: A JavaScript library for building user interfaces.
+- `Material-UI`: A popular React UI framework.
+- `Redux Toolkit`: Official, opinionated, and powerful set of tools for efficient Redux development.
+- `ApexCharts`: A modern charting library for visualizing data.
+- `Formik & Yup`: Libraries for form state management and validation.
+- `AWS SDK & Cognito`: Provides access to AWS services, including user authentication.
 
 For a complete list of dependencies, refer to the `package.json` file.
 
