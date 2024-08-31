@@ -103,6 +103,13 @@ npm run lint
 npm run format
 ```
 
+## Authors
+
+- **Lidia Polyakov** - [GitHub](https://github.com/lidiaPolyakov)
+- **Asaf Bai** - [GitHub](https://github.com/asafbaibekov)
+- **Ibraheem Alnakib** - [GitHub](https://github.com/abrahhem)
+
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
